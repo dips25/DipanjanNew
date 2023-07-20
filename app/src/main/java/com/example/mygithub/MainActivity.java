@@ -2,6 +2,7 @@ package com.example.mygithub;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -12,9 +13,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 
@@ -56,11 +62,19 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView mainRecycler;
 
     AppBarLayout actionbar;
-    androidx.appcompat.widget.Toolbar toolbar;
+
 
     boolean isset = false;
 
     Observer<List<MyOwnRepo>> observer;
+
+    EditText editusername;
+
+    Toolbar toolbar;
+
+    ImageView menu_icon;
+    SharedPreferences sharedPreferences;
+    SharedPreferences.Editor editor;
 
 
 
@@ -69,6 +83,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        sharedPreferences = getSharedPreferences("data" , MODE_PRIVATE);
+        editor = sharedPreferences.edit();
+        editor.putString("ownername" , "dips25");
+        editor.apply();
+
+
+
 
 
         myGithubViewModel = new ViewModelProvider(MainActivity.this).get(MyGithubViewModel.class);
@@ -80,15 +102,60 @@ public class MainActivity extends AppCompatActivity {
         mainRecycler.setAdapter(myRepoAdapter);
         mainRecycler.setHasFixedSize(true);
 
+        toolbar = (Toolbar) findViewById(R.id.main_toolbar);
+        menu_icon = (ImageView) findViewById(R.id.menuAdd);
+
+        menu_icon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
 
-        toolbar = findViewById(R.id.main_toolbar);
-        toolbar.setTitle("My Github");
-        toolbar.setTitleTextColor(getResources().getColor(R.color.white));
+
+                Intent intent1 = new Intent(MainActivity.this , AddRepoActivity.class);
+                intent1.putExtra("ownername" , sharedPreferences.getString("ownername" , ""));
+                startActivity(intent1);
+
+            }
+        });
+
+
+
+
+        editusername = (EditText) findViewById(R.id.edit_username);
+
+        editusername.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                getRepos(s.toString());
+
+               // setupObserver(s.toString());
+
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+
+
+
+
+//        toolbar = findViewById(R.id.main_toolbar);
+//        toolbar.setTitle("My Github");
+//        toolbar.setTitleTextColor(getResources().getColor(R.color.white));
 
         setSupportActionBar(toolbar);
 
-        setupObserver();
+        //setupObserver();
 
     }
 
@@ -99,9 +166,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void setupObserver() {
+    private void setupObserver(String s) {
 
-        myGithubViewModel.getMyRepos().observe(MainActivity.this, new Observer<List<MyOwnRepo>>() {
+        myGithubViewModel.getMyRepos(s).observe(MainActivity.this, new Observer<List<MyOwnRepo>>() {
             @Override
             public void onChanged(List<MyOwnRepo> myOwnRepoList) {
 
@@ -133,12 +200,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void getRepos() {
+    private void getRepos(String s) {
+
+        myOwnRepos.clear();
 
         RetroFitClient retroFitClient = RetroFitClient.getInstance();
         Api api = retroFitClient.getApi();
 
-        api.getRepository("dips25").enqueue(new Callback<JsonArray>() {
+        api.getRepository(s).enqueue(new Callback<JsonArray>() {
             @Override
             public void onResponse(Call<JsonArray> call, Response<JsonArray> response) {
 
@@ -160,6 +229,9 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     myRepoAdapter.notifyDataSetChanged();
+                } else {
+
+                    Toast.makeText(MainActivity.this, "Failed", Toast.LENGTH_SHORT).show();
                 }
 
             }
@@ -175,32 +247,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
 
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-
-        int id = item.getItemId();
-
-        if (id == R.id.add_repo) {
-
-            SharedPreferences sharedPreferences = getSharedPreferences("data" , MODE_PRIVATE);
-            //SharedPreferences.Editor editor = sharedPreferences.edit();
-            //editor.putString("ownername" , myOwnRepo.toString().split("/")[0]);
-
-            Intent intent1 = new Intent(MainActivity.this , AddRepoActivity.class);
-            intent1.putExtra("ownername" , sharedPreferences.getString("ownername" , ""));
-            startActivity(intent1);
-            return true;
-        }
-            return true;
-
-        }
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {

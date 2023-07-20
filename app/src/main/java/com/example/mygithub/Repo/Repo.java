@@ -50,14 +50,14 @@ public class Repo {
 
 
 
-    public MutableLiveData<List<MyOwnRepo>> getRepositories() {
+    public MutableLiveData<List<MyOwnRepo>> getRepositories(String username) {
 
 
 
         RetroFitClient retroFitClient = RetroFitClient.getInstance();
         Api api = retroFitClient.getApi();
 
-        api.getRepository("dips25").enqueue(new Callback<JsonArray>() {
+        api.getRepository(username).enqueue(new Callback<JsonArray>() {
             @Override
             public void onResponse(Call<JsonArray> call, Response<JsonArray> response) {
 

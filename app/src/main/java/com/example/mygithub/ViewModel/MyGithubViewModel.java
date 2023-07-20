@@ -20,9 +20,9 @@ public class MyGithubViewModel extends ViewModel {
     }
 
 
-    public LiveData<List<MyOwnRepo>> getMyRepos() {
+    public LiveData<List<MyOwnRepo>> getMyRepos(String username) {
 
-        return repo.getRepositories();
+        return repo.getRepositories(username);
     }
 
 
