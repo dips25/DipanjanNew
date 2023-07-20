@@ -2,6 +2,7 @@ package com.example.mygithub.Activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -16,6 +17,7 @@ import com.example.mygithub.Model.MyOwnRepo;
 import com.example.mygithub.Model.Repository;
 import com.example.mygithub.R;
 import com.example.mygithub.RetroFitClient;
+import com.example.mygithub.Utils.MyProgressDialog;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -65,6 +67,11 @@ public class AddRepoActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+                MyProgressDialog myProgressDialog = MyProgressDialog.getInstance(AddRepoActivity.this);
+                myProgressDialog.setMessagee("Adding Repository...").setStyle(ProgressDialog.STYLE_SPINNER);
+                myProgressDialog.setCanceledOnTouchOutside(false);
+                myProgressDialog.show();
+
                 String fname = "";
                 String fdesc = "";
 
@@ -75,7 +82,9 @@ public class AddRepoActivity extends AppCompatActivity {
                 if (fname.isBlank()) {
 
                     Toast.makeText(AddRepoActivity.this, "Enter Repository name", Toast.LENGTH_SHORT).show();
+                    myProgressDialog.dismiss();
                     return;
+
 
 
                 } else {
@@ -92,16 +101,18 @@ public class AddRepoActivity extends AppCompatActivity {
 //                stringMap.put("Authorization" , " Bearer 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");
 //                stringMap.put("X-GitHub-Api-Version", "2022-11-28");
 
-                    api.createRepo("Bearer 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"  ,  new Repository(fname, fdesc)).enqueue(new Callback<MyOwnRepo>() {
+                    api.createRepo("Bearer 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"  ,  new Repository(fname, fdesc)).enqueue(new Callback<MyOwnRepo>() {
                         @Override
                         public void onResponse(Call<MyOwnRepo> call, Response<MyOwnRepo> response) {
 
                             if (response.isSuccessful()) {
 
                                 Toast.makeText(AddRepoActivity.this, "Repository Created.", Toast.LENGTH_SHORT).show();
+                                myProgressDialog.dismiss();
                             } else {
 
                                 Toast.makeText(AddRepoActivity.this , "Error:" + response.message() , Toast.LENGTH_SHORT).show();
+                                myProgressDialog.dismiss();
                             }
 
                         }
@@ -110,6 +121,7 @@ public class AddRepoActivity extends AppCompatActivity {
                         public void onFailure(Call<MyOwnRepo> call, Throwable t) {
 
                             Toast.makeText(AddRepoActivity.this, "Error:" + t.getMessage(), Toast.LENGTH_SHORT).show();
+                            myProgressDialog.dismiss();
 
                         }
                     });
